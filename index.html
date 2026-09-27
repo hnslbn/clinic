@@ -411,7 +411,9 @@ let state = {
   idx: 0,
   stage: 'title', // title | intro | diagnose | prescribe | done
   records: [],
-  diagnoseSelected: null
+  diagnoseSelected: null,
+  diagnoseWrongTries: [],
+  printOnly: false
 };
 
 const main = document.getElementById('main');
@@ -482,24 +484,30 @@ function renderCase(){
   }
 
   if (state.stage === 'diagnose'){
+    const solved = state.diagnoseSelected === c.correct;
     let choicesHtml = c.choices.map((ch, i) => {
       let cls = '';
       let disabled = '';
-      if (state.diagnoseSelected !== null){
+      const tried = state.diagnoseWrongTries.includes(i);
+      if (solved){
         disabled = 'disabled';
         if (i === c.correct) cls = 'correct';
-        else if (i === state.diagnoseSelected) cls = 'wrong';
+        else if (tried) cls = 'wrong';
+      } else if (tried){
+        disabled = 'disabled';
+        cls = 'wrong';
       }
       return `<button class="choice ${cls}" data-i="${i}" ${disabled}>${ch}</button>`;
     }).join('');
 
     let feedback = '';
-    if (state.diagnoseSelected !== null){
+    if (solved){
       feedback = `<div class="feedback ok"><strong>진단 근거</strong><br>${c.explain}</div>
         <div class="actions-row" style="margin-top:14px;">
-          <button class="btn ghost" id="retryDiagnose">다시 진단하기</button>
           <button class="btn wide" id="toPrescribe">처방 입력하기</button>
         </div>`;
+    } else if (state.diagnoseWrongTries.length > 0){
+      feedback = `<div class="feedback info">아직 정확한 진단이 아니에요. 남은 선택지 중에서 다시 골라보세요.</div>`;
     }
 
     body = `
@@ -548,25 +556,29 @@ function renderCase(){
 
 function wireCaseEvents(c){
   const toDiagnose = document.getElementById('toDiagnose');
-  if (toDiagnose) toDiagnose.onclick = () => { state.stage = 'diagnose'; state.diagnoseSelected = null; render(); };
+  if (toDiagnose) toDiagnose.onclick = () => { state.stage = 'diagnose'; state.diagnoseSelected = null; state.diagnoseWrongTries = []; render(); };
 
   if (state.stage === 'diagnose'){
     document.getElementById('backToIntro').onclick = () => { state.stage = 'intro'; render(); };
     document.querySelectorAll('.choice').forEach(btn => {
       btn.onclick = () => {
-        if (state.diagnoseSelected !== null) return;
-        state.diagnoseSelected = parseInt(btn.dataset.i, 10);
+        if (state.diagnoseSelected === c.correct) return;
+        const i = parseInt(btn.dataset.i, 10);
+        if (state.diagnoseWrongTries.includes(i)) return;
+        if (i === c.correct){
+          state.diagnoseSelected = i;
+        } else {
+          state.diagnoseWrongTries.push(i);
+        }
         render();
       };
     });
-    const retryDiagnose = document.getElementById('retryDiagnose');
-    if (retryDiagnose) retryDiagnose.onclick = () => { state.diagnoseSelected = null; render(); };
     const toPrescribe = document.getElementById('toPrescribe');
     if (toPrescribe) toPrescribe.onclick = () => { state.stage = 'prescribe'; render(); };
   }
 
   if (state.stage === 'prescribe'){
-    document.getElementById('backToDiagnose').onclick = () => { state.diagnoseSelected = null; state.stage = 'diagnose'; render(); };
+    document.getElementById('backToDiagnose').onclick = () => { state.diagnoseSelected = null; state.diagnoseWrongTries = []; state.stage = 'diagnose'; render(); };
 
     function submitRx(){
       const val = document.getElementById('rxInput').value.trim();
@@ -594,7 +606,7 @@ function wireCaseEvents(c){
       };
       document.getElementById('nextCase').onclick = () => {
         if (state.idx+1 < CASES.length){
-          state.idx += 1; state.stage = 'intro'; state.diagnoseSelected = null;
+          state.idx += 1; state.stage = 'intro'; state.diagnoseSelected = null; state.diagnoseWrongTries = [];
         } else {
           state.stage = 'done';
         }
@@ -605,7 +617,22 @@ function wireCaseEvents(c){
   }
 }
 
+function buildRxSheetsHtml(){
+  return state.records.map((r, i) => `
+    <div class="rx-sheet">
+      <div class="rx-head">존중 처방전 <small>제 ${String(i+1).padStart(3,'0')}호</small></div>
+      <div class="rx-row"><div class="k">환자</div><div class="v">${r.name} (${r.type})</div></div>
+      <div class="rx-row"><div class="k">증상</div><div class="v">${r.symptom}</div></div>
+      <div class="rx-row"><div class="k">진단</div><div class="v">${r.diagnosis}</div></div>
+      <div class="rx-row"><div class="k">처방</div><div class="v"><strong>${escapeHtml(r.prescription)}</strong></div></div>
+      <div class="rx-foot"><span>발행일 ${new Date().toLocaleDateString('ko-KR')}</span><span class="doc">담당의 ${state.studentName}</span></div>
+    </div>
+  `).join('');
+}
+
 function renderChart(){
+  if (state.printOnly) return renderPrintOnly();
+
   let cards = state.records.map(r => `
     <div class="chart-card">
       <div class="top"><span class="patient">${r.name}</span><span class="type">${r.type}</span></div>
@@ -618,43 +645,40 @@ function renderChart(){
   `).join('');
 
   main.innerHTML = `
-    <div class="no-print" style="padding:24px 0 10px;">
+    <div style="padding:24px 0 10px;">
       <h1 style="font-family:'Noto Serif KR',serif;font-size:22px;margin:0 0 6px;">진료 기록부</h1>
       <p style="color:var(--ink-soft);font-size:14px;margin:0 0 20px;">담당의 ${state.studentName}님이 오늘 ${state.records.length}건의 상담을 완료했습니다.</p>
     </div>
-    <div class="chart-list no-print">${cards}</div>
-    <div class="no-print" style="height:20px;"></div>
-    <h2 class="no-print" style="font-family:'Noto Serif KR',serif;font-size:18px;margin:0 0 12px;">처방전 출력</h2>
-    <div id="rxSheets"></div>
-    <div class="actions-row no-print" style="margin:10px 0 8px;">
-      <button class="btn wide" id="printBtn">처방전 인쇄 / PDF 저장</button>
+    <div class="chart-list">${cards}</div>
+    <div class="actions-row" style="margin:20px 0 8px;">
+      <button class="btn wide gold" id="openRx">처방전만 보기 (인쇄·저장용)</button>
     </div>
-    <p class="no-print" style="color:var(--ink-soft);font-size:12.5px;margin:0 0 22px;">버튼이 반응하지 않으면 키보드에서 <strong>Ctrl+P</strong>(맥은 <strong>Cmd+P</strong>)를 직접 눌러주세요. 인쇄 대화상자에서 "PDF로 저장"을 선택하면 파일로도 저장돼요.</p>
-    <div class="actions-row no-print">
+    <div class="actions-row">
       <button class="btn ghost wide" id="restartBtn">처음부터 다시 진료하기</button>
     </div>
   `;
 
-  const sheets = document.getElementById('rxSheets');
-  state.records.forEach((r, i) => {
-    const el = document.createElement('div');
-    el.className = 'rx-sheet';
-    el.innerHTML = `
-      <div class="rx-head">존중 처방전 <small>제 ${String(i+1).padStart(3,'0')}호</small></div>
-      <div class="rx-row"><div class="k">환자</div><div class="v">${r.name} (${r.type})</div></div>
-      <div class="rx-row"><div class="k">증상</div><div class="v">${r.symptom}</div></div>
-      <div class="rx-row"><div class="k">진단</div><div class="v">${r.diagnosis}</div></div>
-      <div class="rx-row"><div class="k">처방</div><div class="v"><strong>${escapeHtml(r.prescription)}</strong></div></div>
-      <div class="rx-foot"><span>발행일 ${new Date().toLocaleDateString('ko-KR')}</span><span class="doc">담당의 ${state.studentName}</span></div>
-    `;
-    sheets.appendChild(el);
-  });
-
-  document.getElementById('printBtn').onclick = () => window.print();
+  document.getElementById('openRx').onclick = () => { state.printOnly = true; render(); };
   document.getElementById('restartBtn').onclick = () => {
-    state = { studentName: state.studentName, idx: 0, stage: 'title', records: [], diagnoseSelected: null };
+    state = { studentName: state.studentName, idx: 0, stage: 'title', records: [], diagnoseSelected: null, diagnoseWrongTries: [], printOnly: false };
     render();
   };
+}
+
+function renderPrintOnly(){
+  main.innerHTML = `
+    <div class="no-print" style="padding:20px 0 14px;">
+      <button class="btn ghost" id="backToChart">← 진료 기록부로 돌아가기</button>
+    </div>
+    <div id="rxSheets">${buildRxSheetsHtml()}</div>
+    <div class="actions-row no-print" style="margin:16px 0 8px;">
+      <button class="btn wide" id="printBtn">처방전 인쇄 / PDF 저장</button>
+    </div>
+    <p class="no-print" style="color:var(--ink-soft);font-size:12.5px;margin:0 0 22px;">버튼이 반응하지 않으면 키보드에서 <strong>Ctrl+P</strong>(맥은 <strong>Cmd+P</strong>)를 직접 눌러주세요. 인쇄 대화상자에서 "PDF로 저장"을 선택하면 파일로도 저장돼요. 이 화면은 처방전만 담고 있어서, 화면을 그대로 캡처해도 처방전만 남아요.</p>
+  `;
+
+  document.getElementById('backToChart').onclick = () => { state.printOnly = false; render(); };
+  document.getElementById('printBtn').onclick = () => window.print();
 }
 
 function escapeHtml(s){
