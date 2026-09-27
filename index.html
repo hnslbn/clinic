@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>언어 상담센터 — 존중 처방전</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩺</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700;900&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F2F6F1;
+    --bg-panel: #FFFFFF;
+    --ink: #1D2E28;
+    --ink-soft: #4B5B54;
+    --line: #D7E0D9;
+    --teal: #2F6F5E;
+    --teal-dark: #1F4B3F;
+    --brick: #C05A3E;
+    --brick-soft: #F1DCD3;
+    --gold: #C99A3D;
+    --gold-soft: #F3E7CB;
+    --shadow: 0 10px 30px rgba(29,46,40,0.10);
+    --radius: 14px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121814;
+      --bg-panel: #1B231E;
+      --ink: #EAF0EC;
+      --ink-soft: #A9B8B0;
+      --line: #2C3A32;
+      --teal: #5FBFA2;
+      --teal-dark: #8FDCC2;
+      --brick: #E38A6C;
+      --brick-soft: #3A2620;
+      --gold: #E3C46E;
+      --gold-soft: #3A3120;
+      --shadow: 0 10px 30px rgba(0,0,0,0.4);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121814;
+    --bg-panel: #1B231E;
+    --ink: #EAF0EC;
+    --ink-soft: #A9B8B0;
+    --line: #2C3A32;
+    --teal: #5FBFA2;
+    --teal-dark: #8FDCC2;
+    --brick: #E38A6C;
+    --brick-soft: #3A2620;
+    --gold: #E3C46E;
+    --gold-soft: #3A3120;
+    --shadow: 0 10px 30px rgba(0,0,0,0.4);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Noto Sans KR', system-ui, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  #app { min-height: 100%; display: flex; flex-direction: column; }
+
+  .brandbar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+    position: sticky; top: 0;
+    background: var(--bg);
+    z-index: 5;
+  }
+  .brandbar .mark {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--teal); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Noto Serif KR', serif; font-weight: 900; font-size: 16px;
+    flex-shrink: 0;
+  }
+  .brandbar .name { font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: 16px; }
+  .brandbar .sub { font-size: 12px; color: var(--ink-soft); margin-left: auto; text-align: right; }
+
+  main { flex: 1; display: flex; flex-direction: column; max-width: 640px; margin: 0 auto; width: 100%; padding: 0 18px 40px; }
+
+  /* ---------- Title screen ---------- */
+  .title-screen { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 22px; padding: 20px 0 60px; }
+  .title-screen h1 {
+    font-family: 'Noto Serif KR', serif; font-weight: 900;
+    font-size: clamp(28px, 7vw, 40px); line-height: 1.3; margin: 0;
+  }
+  .title-screen h1 span { color: var(--teal); }
+  .title-screen p.lede { color: var(--ink-soft); line-height: 1.7; margin: 0; font-size: 15px; }
+  .case-count {
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .case-count .pill {
+    border: 1px solid var(--line); border-radius: 999px;
+    padding: 6px 12px; font-size: 12.5px; color: var(--ink-soft);
+    background: var(--bg-panel);
+  }
+  label.field-label { font-size: 13px; color: var(--ink-soft); display: block; margin-bottom: 6px; }
+  input.text-input {
+    width: 100%; padding: 13px 14px; border-radius: 10px;
+    border: 1.5px solid var(--line); background: var(--bg-panel); color: var(--ink);
+    font-size: 15px; font-family: inherit;
+  }
+  input.text-input:focus { outline: none; border-color: var(--teal); }
+  .btn {
+    appearance: none; border: none; cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif; font-weight: 700; font-size: 15px;
+    padding: 14px 22px; border-radius: 10px;
+    background: var(--teal); color: #fff;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:hover { box-shadow: var(--shadow); }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn.ghost {
+    background: transparent; color: var(--teal); border: 1.5px solid var(--teal);
+  }
+  .btn.gold { background: var(--gold); }
+  .btn.wide { width: 100%; }
+
+  /* ---------- Progress ---------- */
+  .progress-row { display: flex; gap: 6px; margin: 16px 0 6px; }
+  .progress-row .seg { height: 5px; flex: 1; border-radius: 3px; background: var(--line); }
+  .progress-row .seg.done { background: var(--teal); }
+  .progress-row .seg.active { background: var(--gold); }
+  .progress-label { font-size: 12px; color: var(--ink-soft); margin-bottom: 4px; }
+
+  /* ---------- VN stage ---------- */
+  .stage {
+    background: linear-gradient(180deg, var(--teal-dark), var(--teal));
+    border-radius: var(--radius);
+    padding: 26px 20px 0;
+    display: flex; flex-direction: column; align-items: center;
+    position: relative; overflow: hidden;
+    min-height: 220px;
+  }
+  .stage .patient-tag {
+    align-self: flex-start;
+    background: rgba(255,255,255,0.18); color: #fff;
+    font-size: 12px; padding: 5px 10px; border-radius: 999px;
+    margin-bottom: 6px;
+  }
+  .avatar-wrap { width: 132px; height: 132px; margin: 4px 0 -2px; filter: drop-shadow(0 8px 14px rgba(0,0,0,0.18)); }
+  .stage-caption { color: rgba(255,255,255,0.85); font-size: 12.5px; margin: 2px 0 18px; text-align: center; }
+
+  .dialogue-box {
+    background: var(--bg-panel); border-radius: var(--radius) var(--radius) 0 0;
+    margin-top: -10px;
+    padding: 18px 18px 20px;
+    border: 1px solid var(--line); border-bottom: none;
+    box-shadow: var(--shadow);
+  }
+  .dialogue-box .speaker {
+    font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: 14px;
+    color: var(--teal); margin-bottom: 6px;
+  }
+  .dialogue-box .line { font-size: 16px; line-height: 1.65; margin: 0; }
+  .dialogue-box .line .quote { color: var(--brick); font-weight: 700; }
+
+  .panel {
+    background: var(--bg-panel); border: 1px solid var(--line); border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    padding: 18px; margin-bottom: 18px;
+  }
+  .panel h3 {
+    font-family: 'Noto Serif KR', serif; font-size: 15px; margin: 0 0 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .panel h3 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--brick); }
+  .panel h3.rx .dot { background: var(--gold); }
+
+  .choice-list { display: flex; flex-direction: column; gap: 10px; }
+  .choice {
+    text-align: left; border: 1.5px solid var(--line); background: var(--bg-panel);
+    border-radius: 10px; padding: 13px 14px; font-size: 14.5px; line-height: 1.5;
+    cursor: pointer; color: var(--ink); font-family: inherit;
+  }
+  .choice:hover { border-color: var(--teal); }
+  .choice.correct { border-color: var(--teal); background: color-mix(in srgb, var(--teal) 12%, var(--bg-panel)); }
+  .choice.wrong { border-color: var(--brick); background: var(--brick-soft); }
+  .choice[disabled] { cursor: default; }
+
+  .feedback { margin-top: 12px; padding: 12px 14px; border-radius: 10px; font-size: 14px; line-height: 1.6; }
+  .feedback.ok { background: color-mix(in srgb, var(--teal) 12%, var(--bg-panel)); border: 1px solid var(--teal); }
+  .feedback.info { background: var(--gold-soft); border: 1px solid var(--gold); }
+
+  textarea.text-input {
+    width: 100%; min-height: 84px; padding: 13px 14px; border-radius: 10px;
+    border: 1.5px solid var(--line); background: var(--bg-panel); color: var(--ink);
+    font-size: 15px; font-family: inherit; resize: vertical;
+  }
+  textarea.text-input:focus { outline: none; border-color: var(--teal); }
+
+  .model-answer { border-left: 3px solid var(--gold); padding: 10px 12px; background: var(--gold-soft); border-radius: 0 8px 8px 0; font-size: 14px; line-height: 1.6; margin-top: 12px; }
+  .model-answer .tag { font-weight: 700; color: var(--gold); display:block; font-size:12px; margin-bottom:4px; }
+
+  .actions-row { display: flex; gap: 10px; margin-top: 4px; }
+
+  /* ---------- Chart / summary ---------- */
+  .chart-list { display: flex; flex-direction: column; gap: 14px; }
+  .chart-card {
+    background: var(--bg-panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px 18px;
+  }
+  .chart-card .top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .chart-card .patient { font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: 15px; }
+  .chart-card .type { font-size: 11.5px; color: var(--ink-soft); }
+  .chart-card dl { margin: 0; font-size: 13.5px; line-height: 1.6; }
+  .chart-card dt { color: var(--ink-soft); margin-top: 8px; }
+  .chart-card dd { margin: 2px 0 0; }
+
+  /* ---------- Prescription sheet ---------- */
+  .rx-sheet {
+    background: var(--bg-panel);
+    border: 1.5px solid var(--ink);
+    border-radius: 10px;
+    padding: 26px 24px;
+    position: relative;
+    margin-bottom: 16px;
+  }
+  .rx-sheet::before {
+    content: "존중 처방";
+    position: absolute; top: 18px; right: 18px;
+    font-family: 'Noto Serif KR', serif; font-weight: 900; font-size: 13px;
+    color: var(--gold); border: 2px solid var(--gold); border-radius: 8px;
+    padding: 4px 10px; transform: rotate(8deg); opacity: 0.85;
+  }
+  .rx-head { font-family: 'Noto Serif KR', serif; font-weight: 900; font-size: 20px; border-bottom: 2px solid var(--ink); padding-bottom: 10px; margin-bottom: 14px; }
+  .rx-head small { display: block; font-family: 'Noto Sans KR', sans-serif; font-weight: 400; font-size: 12px; color: var(--ink-soft); margin-top: 3px; }
+  .rx-row { display: flex; gap: 14px; font-size: 13.5px; margin-bottom: 10px; }
+  .rx-row .k { width: 72px; flex-shrink: 0; color: var(--ink-soft); }
+  .rx-row .v { flex: 1; line-height: 1.55; }
+  .rx-foot { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 18px; padding-top: 12px; border-top: 1px dashed var(--line); font-size: 12.5px; color: var(--ink-soft); }
+  .rx-foot .doc { font-family: 'Noto Serif KR', serif; font-size: 14px; color: var(--ink); }
+
+  footer.nav-bottom {
+    position: sticky; bottom: 0; background: var(--bg);
+    padding: 12px 0 calc(14px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--line);
+    display: flex; gap: 10px;
+  }
+  .hidden { display: none !important; }
+
+  @media print {
+    .brandbar, footer.nav-bottom, .no-print { display: none !important; }
+    body, #app, main { background: #fff !important; }
+    .rx-sheet { break-inside: avoid; border-color: #000; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="brandbar">
+    <div class="mark">처</div>
+    <div class="name">존중 언어 상담센터</div>
+    <div class="sub" id="brandSub"></div>
+  </div>
+  <main id="main"></main>
+</div>
+
+<script>
+const CASES = [
+  {
+    id: 'jiwoo', name: '지우', type: '외모 비하',
+    avatar: mkAvatar('#F1DCD3', '#C05A3E', 'droop'),
+    setting: '고속버스를 타고 이동하던 중',
+    line: '고속버스에서 옆자리에 앉은 친구가 "너 <span class="quote">뚱뚱해서 자리가 비좁다</span>"고 했어요. 그 뒤로 옆에 누가 앉으면 자꾸 움츠러들어요.',
+    choices: [
+      '성별에 따른 외모 기준을 강요하며 차별하는 표현이다',
+      '학업 능력을 깎아내리며 차별하는 표현이다',
+      '외모(신체)를 이유로 차별하고 혐오하는 표현이다',
+      '나이(세대)를 이유로 차별하는 표현이다'
+    ],
+    correct: 2,
+    explain: '자리가 좁은 원인을 상대의 몸 크기 탓으로 돌려 신체를 직접 겨냥해 비하하고 있어요. 특정 성별에게 요구되는 기준을 말한 것이 아니라 신체 자체를 문제 삼았기 때문에 성별차별보다는 외모(신체)차별로 보는 것이 정확해요. 학업이나 나이와는 관련이 없어요.',
+    intent: '아마 자리가 좁아 불편했고, 그 불편함을 그대로 전달하고 싶었을 가능성이 커요.',
+    model: '"자리가 좀 좁은 것 같은데, 다리를 조금만 오므려 줄 수 있을까?" — 불편하다는 사실은 그대로 전달하되, 원인을 상대의 몸 탓으로 돌리지 않는 말이에요.'
+  },
+  {
+    id: 'hajun', name: '하준', type: '성별 고정관념',
+    avatar: mkAvatar('#DCE7E2', '#2F6F5E', 'tears'),
+    setting: '반려동물이 아파서 눈물이 난 쉬는 시간',
+    line: '강아지가 아프다는 얘기를 듣고 눈물이 났는데, 친구가 "<span class="quote">남자가 왜 질질 짜냐</span>"고 했어요. 그 뒤로 슬퍼도 참게 돼요.',
+    choices: [
+      '나이(세대)가 어리다고 무시하며 차별하는 표현이다',
+      '성별에 따라 감정 표현을 제한하며 차별하는 표현이다',
+      '외모를 이유로 놀리며 차별하는 표현이다',
+      '감정을 조절하지 못한다고 여기며 장애를 차별하는 표현이다'
+    ],
+    correct: 1,
+    explain: '"남자가"라는 말로 성별을 근거 삼아 울면 안 된다는 고정관념을 강요했어요. 나이나 외모, 장애를 언급한 것이 아니라 성별에 따른 행동 규범을 문제 삼았기 때문에 성별차별에 해당해요.',
+    intent: '아마 위로하고 싶었지만 "울지 말고 힘내"라는 말이 서툴게 나온 것일 가능성이 커요.',
+    model: '"많이 놀랐겠다, 강아지 걱정되지. 좀 진정되면 얘기해줘" — 위로하고 싶은 마음은 그대로 담되, 울음을 문제 삼지 않는 말이에요.'
+  },
+  {
+    id: 'haeun', name: '하은', type: '성별 고정관념(직업)',
+    avatar: mkAvatar('#F3E7CB', '#C99A3D', 'flat'),
+    setting: '엄마의 직업 이야기가 나온 쉬는 시간',
+    line: '엄마가 경찰관이라고 했더니 친구가 "우와 너희 엄마 <span class="quote">여경</span>이야? 신기하다"라고 했어요.',
+    choices: [
+      '직업의 전문성을 깎아내리며 차별하는 표현이다',
+      '나이(세대)를 이유로 차별하는 표현이다',
+      '성별을 사실대로 말한 것뿐이라 차별이 아니다',
+      '성별에 따라 직업을 예외적인 것으로 취급하며 차별하는 표현이다'
+    ],
+    correct: 3,
+    explain: '"경찰관" 앞에 "여-"를 붙이는 것은 경찰관이라는 직업의 기본값을 남성으로 전제하고, 여성이 그 자리에 있는 것을 예외적이고 신기한 일로 취급하는 성별 고정관념이 담긴 표현이에요. 단순한 사실 서술이 아니라 편견을 전제로 한 표현이라 차별에 해당해요.',
+    intent: '아마 놀랍고 신기해서 감탄하며 칭찬하려던 마음이었을 가능성이 커요.',
+    model: '"너희 엄마 경찰관이시구나, 멋지다!" — 놀라움과 존중은 그대로 담되, 성별을 굳이 붙이지 않는 말이에요.'
+  },
+  {
+    id: 'jihoon', name: '지훈', type: '세대(나이) 비하',
+    avatar: mkAvatar('#DCE7E2', '#C05A3E', 'flat'),
+    speakerLabel: '어른',
+    setting: '온라인 커뮤니티에 의견을 남긴 뒤',
+    line: '커뮤니티 게시글에 제 의견을 댓글로 남겼더니, 한 어른이 "역시 <span class="quote">급식충</span>들은 생각이 없다"는 답글을 달았어요.',
+    choices: [
+      '나이(세대)를 이유로 싸잡아 무시하며 차별하는 표현이다',
+      '학업(성적)을 이유로 무시하며 차별하는 표현이다',
+      '외모를 이유로 차별하는 표현이다',
+      '특정 집단을 부르는 별명일 뿐 차별이 아니다'
+    ],
+    correct: 0,
+    explain: '"급식충"은 학생이라는 이유만으로 그 사람의 생각과 의견을 무시하는 세대(나이) 차별적 표현이에요. 성적이나 외모를 지적한 것이 아니라, 어리다는 이유로 한 사람의 의견 자체를 가치 없는 것으로 싸잡아 취급했기 때문에 문제가 돼요.',
+    intent: '아마 의견에 동의할 수 없어 화가 났고, 그 반박을 나이로 싸잡아 표출하려던 것일 가능성이 커요.',
+    model: '"그 의견에는 동의하기 어렵네요, 이유를 좀 더 설명해 줄 수 있을까요?" — 반박하고 싶은 마음은 그대로 담되, 나이로 싸잡지 않는 말이에요.'
+  },
+  {
+    id: 'doyun', name: '도윤', type: '장애 비하 언어 습관',
+    avatar: mkAvatar('#F1DCD3', '#C05A3E', 'flat'),
+    setting: '모둠 활동 중 실수가 반복된 상황',
+    line: '실수를 하자 친구가 습관처럼 "야 <span class="quote">병신같이</span> 왜 그래"라고 했어요. 다들 아무렇지 않게 그 말을 써서 더 신경 쓰여요.',
+    choices: [
+      '학업(실수)을 이유로 무시하며 차별하는 표현이다',
+      '외모를 이유로 놀리며 차별하는 표현이다',
+      '장애를 비하하는 말을 습관적으로 사용해 차별을 조장하는 표현이다',
+      '특정 대상을 겨냥한 말이 아니므로 차별이 아니다'
+    ],
+    correct: 2,
+    explain: '특정한 사람을 겨냥하지 않았어도, 장애를 뜻하는 단어를 부정적인 상황에 습관적으로 쓰는 것 자체가 장애를 열등하게 취급하는 차별적 언어 습관이에요. 실수(학업)나 외모를 지적한 말이 아니라 단어 선택 자체가 문제예요.',
+    intent: '아마 특정 대상을 겨냥한 게 아니라, 답답하거나 놀란 감정을 감탄사처럼 표출하려던 것일 가능성이 커요.',
+    model: '"헐 뭐야 그거, 왜 그래 진짜 ㅋㅋ" — 놀라거나 답답한 감정은 그대로 표현하되, 장애 비하 단어 없이도 충분히 전달돼요.'
+  },
+  {
+    id: 'daniel', name: '다니엘', type: '인종 대상화',
+    avatar: mkAvatar('#F3E7CB', '#2F6F5E', 'flat'),
+    setting: '오랜만에 복도에서 마주친 순간',
+    line: '오랜만에 만난 친구가 반갑게 인사하며 "오 <span class="quote">흑형</span> 왔다! 춤 잘 추겠다"라고 했어요.',
+    choices: [
+      '출신(다문화)을 이유로 소속감을 부정하는 표현이다',
+      '인종(피부색)을 이유로 고정관념에 끼워 맞추며 차별하는 표현이다',
+      '외모를 이유로 놀리는 표현이다',
+      '친근하게 부르는 별명일 뿐 차별이 아니다'
+    ],
+    correct: 1,
+    explain: '"흑형"은 피부색을 이유로 그 사람을 "춤을 잘 출 것이다" 같은 인종 고정관념에 끼워 맞추는 표현이에요. 친근한 별명처럼 들려도 피부색으로 사람을 대상화한다는 점에서 인종차별에 해당해요.',
+    intent: '아마 반가운 마음을 친근하게 표현하려던 것일 가능성이 커요.',
+    model: '"어? 오랜만이다, 잘 지냈어?" — 반가운 마음은 그대로 담되, 피부색이나 고정관념을 언급하지 않는 인사예요.'
+  },
+  {
+    id: 'rian', name: '리안', type: '다문화가정 비하',
+    avatar: mkAvatar('#F3E7CB', '#C99A3D', 'tears'),
+    setting: '출석을 부르다 이름 때문에 웃음이 터진 순간',
+    line: '이름을 부르는데 친구들이 웃으면서 "<span class="quote">너 진짜 한국 사람 맞아? 이름이 이상해</span>"라고 했어요.',
+    choices: [
+      '지역(사투리)을 이유로 차별하는 표현이다',
+      '외모를 이유로 차별하는 표현이다',
+      '이름이 특이하다고 말한 것뿐이라 차별이 아니다',
+      '출신(다문화)을 이유로 소속감을 부정하며 차별하는 표현이다'
+    ],
+    correct: 3,
+    explain: '"진짜 한국 사람이 맞냐"는 말은 이름과 배경을 이유로 그 사람이 여기 속하지 않는다고 규정하는 거예요. 사투리(지역)나 외모를 지적한 것이 아니라 출신과 정체성 자체를 부정한 다문화차별에 해당해요.',
+    intent: '아마 이름이 낯설고 신기해서 관심을 표현하려던 것일 가능성이 커요.',
+    model: '"이름 되게 특별하다! 무슨 뜻이야?" — 신기함과 관심은 그대로 담되, 소속을 의심하지 않는 말이에요.'
+  }
+];
+
+function mkAvatar(skin, accent, mood){
+  // simple flat SVG portrait, mood: 'flat' | 'tears' | 'droop'
+  let mouth = mood === 'droop'
+    ? '<path d="M40 68 Q50 60 60 68" stroke="'+accent+'" stroke-width="3" fill="none" stroke-linecap="round"/>'
+    : '<path d="M40 64 Q50 70 60 64" stroke="'+accent+'" stroke-width="3" fill="none" stroke-linecap="round"/>';
+  let tears = mood === 'tears'
+    ? '<ellipse cx="34" cy="58" rx="3" ry="6" fill="#6FA8DC" opacity="0.85"/><ellipse cx="66" cy="58" rx="3" ry="6" fill="#6FA8DC" opacity="0.85"/>'
+    : '';
+  return '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'
+    + '<circle cx="50" cy="50" r="46" fill="'+skin+'"/>'
+    + '<circle cx="50" cy="46" r="26" fill="#FBEFE6"/>'
+    + '<path d="M24 40 Q50 10 76 40 Q76 20 50 16 Q24 20 24 40Z" fill="'+accent+'"/>'
+    + '<circle cx="38" cy="46" r="3.2" fill="'+accent+'"/>'
+    + '<circle cx="62" cy="46" r="3.2" fill="'+accent+'"/>'
+    + tears
+    + mouth
+    + '</svg>';
+}
+
+let state = {
+  studentName: '',
+  idx: 0,
+  stage: 'title', // title | intro | diagnose | prescribe | done
+  records: [],
+  diagnoseSelected: null
+};
+
+const main = document.getElementById('main');
+const brandSub = document.getElementById('brandSub');
+
+function render(){
+  brandSub.textContent = state.studentName ? ('담당의: ' + state.studentName) : '';
+  if (state.stage === 'title') return renderTitle();
+  if (state.stage === 'done') return renderChart();
+  return renderCase();
+}
+
+function renderTitle(){
+  main.innerHTML = `
+    <div class="title-screen">
+      <div class="case-count">
+        <span class="pill">총 ${CASES.length}건의 상담</span>
+        <span class="pill">외모·성별·세대·장애·인종·다문화</span>
+      </div>
+      <h1>말 때문에 아픈<br><span>환자들</span>이 찾아왔어요</h1>
+      <p class="lede">당신은 이 상담센터의 담당의입니다. 환자의 증상(들었던 말)을 듣고, 왜 문제인지 진단한 뒤, 존중하는 표현으로 처방을 내려주세요. 마지막에는 처방전을 출력할 수 있어요.</p>
+      <div>
+        <label class="field-label" for="nameInput">담당의 이름</label>
+        <input class="text-input" id="nameInput" placeholder="이름을 입력하세요" value="${escapeAttr(state.studentName)}">
+      </div>
+      <button class="btn wide" id="startBtn">진료 시작하기</button>
+    </div>
+  `;
+  document.getElementById('startBtn').onclick = () => {
+    const v = document.getElementById('nameInput').value.trim();
+    state.studentName = v || '이름 없음';
+    state.stage = 'intro';
+    state.idx = 0;
+    state.records = [];
+    render();
+  };
+}
+
+function progressBar(){
+  let segs = '';
+  for (let i=0;i<CASES.length;i++){
+    let cls = i < state.idx ? 'done' : (i === state.idx ? 'active' : '');
+    segs += `<div class="seg ${cls}"></div>`;
+  }
+  return `<div class="progress-label">환자 ${state.idx+1} / ${CASES.length}</div><div class="progress-row">${segs}</div>`;
+}
+
+function renderCase(){
+  const c = CASES[state.idx];
+  let body = '';
+
+  if (state.stage === 'intro'){
+    body = `
+      <div class="stage">
+        <div class="patient-tag">환자 ${state.idx+1} · ${c.setting}</div>
+        <div class="avatar-wrap">${c.avatar}</div>
+      </div>
+      <div class="dialogue-box">
+        <div class="speaker">${c.name}</div>
+        <p class="line">${c.line}</p>
+      </div>
+      <div class="panel">
+        <div class="actions-row">
+          <button class="btn wide" id="toDiagnose">증상 진단하기</button>
+        </div>
+      </div>
+    `;
+  }
+
+  if (state.stage === 'diagnose'){
+    let choicesHtml = c.choices.map((ch, i) => {
+      let cls = '';
+      let disabled = '';
+      if (state.diagnoseSelected !== null){
+        disabled = 'disabled';
+        if (i === c.correct) cls = 'correct';
+        else if (i === state.diagnoseSelected) cls = 'wrong';
+      }
+      return `<button class="choice ${cls}" data-i="${i}" ${disabled}>${ch}</button>`;
+    }).join('');
+
+    let feedback = '';
+    if (state.diagnoseSelected !== null){
+      feedback = `<div class="feedback ok"><strong>진단 근거</strong><br>${c.explain}</div>
+        <div class="actions-row" style="margin-top:14px;">
+          <button class="btn ghost" id="retryDiagnose">다시 진단하기</button>
+          <button class="btn wide" id="toPrescribe">처방 입력하기</button>
+        </div>`;
+    }
+
+    body = `
+      <div class="stage" style="min-height:150px;">
+        <div class="patient-tag">환자 ${state.idx+1} · ${c.name}</div>
+        <div class="avatar-wrap" style="width:96px;height:96px;">${c.avatar}</div>
+      </div>
+      <div class="dialogue-box">
+        <p class="line">${c.line}</p>
+      </div>
+      <div class="panel">
+        <button class="btn ghost no-print" id="backToIntro" style="margin-bottom:14px;">← 환자 이야기 다시 보기</button>
+        <h3><span class="dot"></span>이 표현에는 어떤 차별·혐오가 담겨 있을까요?</h3>
+        <div class="choice-list">${choicesHtml}</div>
+        ${feedback}
+      </div>
+    `;
+  }
+
+  if (state.stage === 'prescribe'){
+    body = `
+      <div class="stage" style="min-height:150px;">
+        <div class="patient-tag">환자 ${state.idx+1} · ${c.name}</div>
+        <div class="avatar-wrap" style="width:96px;height:96px;">${c.avatar}</div>
+      </div>
+      <div class="dialogue-box">
+        <div class="speaker">문제가 된 발언</div>
+        <p class="line">${c.line}</p>
+      </div>
+      <div class="panel">
+        <button class="btn ghost no-print" id="backToDiagnose" style="margin-bottom:14px;">← 진단 다시 하기</button>
+        <h3 class="rx"><span class="dot"></span>존중 표현 처방하기</h3>
+        <div class="feedback info" style="margin-bottom:14px;">💬 이 말을 한 ${c.speakerLabel || '친구'}의 마음은 아마 이랬을 거예요: ${c.intent}<br>그 마음은 살리면서, 상처 주지 않는 말로 바꿔서 처방해 주세요.</div>
+        <textarea class="text-input" id="rxInput" placeholder="같은 마음을 존중하는 말로 어떻게 바꿀 수 있을까요?"></textarea>
+        <div class="actions-row" style="margin-top:12px;">
+          <button class="btn wide" id="checkRx">처방전 작성 완료</button>
+        </div>
+        <div id="rxFeedback"></div>
+      </div>
+    `;
+  }
+
+  main.innerHTML = progressBar() + body;
+  wireCaseEvents(c);
+}
+
+function wireCaseEvents(c){
+  const toDiagnose = document.getElementById('toDiagnose');
+  if (toDiagnose) toDiagnose.onclick = () => { state.stage = 'diagnose'; state.diagnoseSelected = null; render(); };
+
+  if (state.stage === 'diagnose'){
+    document.getElementById('backToIntro').onclick = () => { state.stage = 'intro'; render(); };
+    document.querySelectorAll('.choice').forEach(btn => {
+      btn.onclick = () => {
+        if (state.diagnoseSelected !== null) return;
+        state.diagnoseSelected = parseInt(btn.dataset.i, 10);
+        render();
+      };
+    });
+    const retryDiagnose = document.getElementById('retryDiagnose');
+    if (retryDiagnose) retryDiagnose.onclick = () => { state.diagnoseSelected = null; render(); };
+    const toPrescribe = document.getElementById('toPrescribe');
+    if (toPrescribe) toPrescribe.onclick = () => { state.stage = 'prescribe'; render(); };
+  }
+
+  if (state.stage === 'prescribe'){
+    document.getElementById('backToDiagnose').onclick = () => { state.diagnoseSelected = null; state.stage = 'diagnose'; render(); };
+
+    function submitRx(){
+      const val = document.getElementById('rxInput').value.trim();
+      if (!val) { document.getElementById('rxInput').focus(); return; }
+      state.records.push({
+        name: c.name, type: c.type, symptom: c.line.replace(/<[^>]+>/g,''),
+        diagnosis: c.choices[c.correct], prescription: val, model: c.model
+      });
+      document.getElementById('rxFeedback').innerHTML = `
+        <div class="model-answer"><span class="tag">같은 마음을 존중하는 말로 바꾼다면</span>${c.model}</div>
+        <div class="actions-row" style="margin-top:12px;">
+          <button class="btn ghost" id="editRx">처방 다시 쓰기</button>
+          <button class="btn wide gold" id="nextCase">${state.idx+1 < CASES.length ? '다음 환자 만나기' : '진료 기록부 완성하기'}</button>
+        </div>
+      `;
+      document.getElementById('checkRx').disabled = true;
+      document.getElementById('rxInput').disabled = true;
+      document.getElementById('editRx').onclick = () => {
+        state.records.pop();
+        document.getElementById('rxFeedback').innerHTML = '';
+        document.getElementById('checkRx').disabled = false;
+        document.getElementById('rxInput').disabled = false;
+        document.getElementById('rxInput').value = val;
+        document.getElementById('rxInput').focus();
+      };
+      document.getElementById('nextCase').onclick = () => {
+        if (state.idx+1 < CASES.length){
+          state.idx += 1; state.stage = 'intro'; state.diagnoseSelected = null;
+        } else {
+          state.stage = 'done';
+        }
+        render();
+      };
+    }
+    document.getElementById('checkRx').onclick = submitRx;
+  }
+}
+
+function renderChart(){
+  let cards = state.records.map(r => `
+    <div class="chart-card">
+      <div class="top"><span class="patient">${r.name}</span><span class="type">${r.type}</span></div>
+      <dl>
+        <dt>증상</dt><dd>${r.symptom}</dd>
+        <dt>진단</dt><dd>${r.diagnosis}</dd>
+        <dt>처방(직접 작성)</dt><dd>${escapeHtml(r.prescription)}</dd>
+      </dl>
+    </div>
+  `).join('');
+
+  main.innerHTML = `
+    <div style="padding:24px 0 10px;">
+      <h1 style="font-family:'Noto Serif KR',serif;font-size:22px;margin:0 0 6px;">진료 기록부</h1>
+      <p style="color:var(--ink-soft);font-size:14px;margin:0 0 20px;">담당의 ${state.studentName}님이 오늘 ${state.records.length}건의 상담을 완료했습니다.</p>
+    </div>
+    <div class="chart-list">${cards}</div>
+    <div style="height:20px;"></div>
+    <h2 style="font-family:'Noto Serif KR',serif;font-size:18px;margin:0 0 12px;">처방전 출력</h2>
+    <div id="rxSheets"></div>
+    <div class="actions-row no-print" style="margin:10px 0 8px;">
+      <button class="btn wide" id="printBtn">처방전 인쇄 / PDF 저장</button>
+    </div>
+    <p class="no-print" style="color:var(--ink-soft);font-size:12.5px;margin:0 0 22px;">버튼이 반응하지 않으면 키보드에서 <strong>Ctrl+P</strong>(맥은 <strong>Cmd+P</strong>)를 직접 눌러주세요. 인쇄 대화상자에서 "PDF로 저장"을 선택하면 파일로도 저장돼요.</p>
+    <div class="actions-row no-print">
+      <button class="btn ghost wide" id="restartBtn">처음부터 다시 진료하기</button>
+    </div>
+  `;
+
+  const sheets = document.getElementById('rxSheets');
+  state.records.forEach((r, i) => {
+    const el = document.createElement('div');
+    el.className = 'rx-sheet';
+    el.innerHTML = `
+      <div class="rx-head">존중 처방전 <small>제 ${String(i+1).padStart(3,'0')}호</small></div>
+      <div class="rx-row"><div class="k">환자</div><div class="v">${r.name} (${r.type})</div></div>
+      <div class="rx-row"><div class="k">증상</div><div class="v">${r.symptom}</div></div>
+      <div class="rx-row"><div class="k">진단</div><div class="v">${r.diagnosis}</div></div>
+      <div class="rx-row"><div class="k">처방</div><div class="v"><strong>${escapeHtml(r.prescription)}</strong></div></div>
+      <div class="rx-foot"><span>발행일 ${new Date().toLocaleDateString('ko-KR')}</span><span class="doc">담당의 ${state.studentName}</span></div>
+    `;
+    sheets.appendChild(el);
+  });
+
+  document.getElementById('printBtn').onclick = () => window.print();
+  document.getElementById('restartBtn').onclick = () => {
+    state = { studentName: state.studentName, idx: 0, stage: 'title', records: [], diagnoseSelected: null };
+    render();
+  };
+}
+
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function escapeAttr(s){ return escapeHtml(s).replace(/"/g,'&quot;'); }
+
+render();
+</script>
+</body>
+</html>
